@@ -1,0 +1,28 @@
+#!/bin/env perl6
+use v6;
+use WebService::Justcoin;
+
+constant $API-KEY = slurp "/home/dagurval/justcoin-key";
+constant $ADDRESS = slurp "/home/dagurval/withdraw-address";
+
+my $j = WebService::Justcoin.new(
+    :api-key($API-KEY),
+    :url-post(&ugly-curl-post),
+    :url-get(&ugly-curl-get));
+
+my %balance = $j.balances(currency => "BTC");
+my Rat $avail = +%balance{"available"};
+
+say "Available balance: $avail";
+
+if $avail > 0.10 {
+    my %resp = $j.create-withdraw-btc(:$ADDRESS, :amount($avail));
+    say "Withdrawing: ", %resp.perl;
+
+    say "Withdraws so far: ", $j.withdraws.perl();
+}
+else {
+    say "Not withdrawing anything today";
+}
+
+
